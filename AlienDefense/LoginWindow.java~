@@ -1,0 +1,70 @@
+import javax.swing.*;
+import java.awt.event.*;
+import java.awt.*;
+import java.io.*;
+/**
+ * Auto Generated Java Class.
+ */
+public class LoginWindow extends JPanel implements ActionListener {
+  
+  private AlienDefenseMain main;
+  JFrame mainFrame;
+  JLabel dummyLabel, lblName;
+  JButton btnSubmit, btnCancel;
+  JTextField tfName;
+  private Color menuColor = new Color(52, 63, 71);
+  
+  public void createGUI(int width, int height, int x, int y, AlienDefenseMain game) {
+    main = game;
+    mainFrame = new JFrame();
+    mainFrame.getContentPane().setBackground(menuColor);
+    mainFrame.getRootPane().setBorder(BorderFactory.createMatteBorder(2, 2, 2, 2, Color.BLACK));
+    mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    mainFrame.setBounds(x,y, width/2,height/2);
+    mainFrame.getContentPane().setLayout(new BorderLayout());
+    mainFrame.setResizable(false);
+    mainFrame.setTitle("Login");
+    
+    lblName = new JLabel("Name:");
+    lblName.setFont(new Font("Serif", Font.BOLD, 16));
+    lblName.setForeground(Color.WHITE);
+    lblName.setBounds(5, 1, 45, 30);
+    mainFrame.add(lblName);
+    
+    tfName = new JTextField("", 30);
+    tfName.setBounds(55, 1, 140, 30);
+    tfName.setEditable(true);
+    mainFrame.add(tfName);
+    btnSubmit = new JButton("Submit");
+    btnSubmit.setBounds(1, 40, 80, 30);
+    btnSubmit.addActionListener(this);
+    mainFrame.add(btnSubmit);
+    
+    btnCancel = new JButton("Cancel");
+    btnCancel.setBounds(82, 40, 80, 30);
+    btnCancel.addActionListener(this);
+    mainFrame.add(btnCancel);
+    
+    dummyLabel = new JLabel("");
+    mainFrame.add(dummyLabel);
+    
+    mainFrame.setVisible(false);
+    mainFrame.setResizable(false);
+    mainFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+    
+  }
+  
+  public void makeVisible() { mainFrame.setVisible(true); }
+  public void actionPerformed(ActionEvent evt) {
+    if (evt.getActionCommand().equals("Cancel")) {
+      main.showScreen(0);
+      mainFrame.dispose();
+    }
+    if (evt.getActionCommand().equals("Submit")) {
+      String typedName = tfName.getText();
+      main.setPlayerName(typedName);
+      main.showScreen(0);
+      mainFrame.dispose();
+    }
+  }
+}

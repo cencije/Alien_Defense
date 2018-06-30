@@ -1,0 +1,888 @@
+import acm.graphics.*;
+import acm.program.*;
+import acm.util.*;
+import acm.util.MediaTools.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.applet.AudioClip.*;
+import java.applet.*;
+import java.util.*;
+
+/**
+ * Write a description of class AlienDefenseMain here.
+ * 
+ * @author (your name) 
+ * @version (a version number or a date)
+ */
+public class AlienDefenseMain extends GraphicsProgram implements Runnable 
+{
+
+  public static int APPLICATION_HEIGHT = 500;
+  public static int APPLICATION_WIDTH = 550;
+  
+  private static final double DELAY = 1;
+  
+  private AudioClip gameMusic = getAudioClip(getCodeBase(),"Music/AlienDefenseMainMenu.wav"); 
+  
+  private LoginWindow lw = new LoginWindow();
+  private String playerName = "";
+  private int playerLevel = 0;
+  private GImage btnLogin, btnQuit, btnEnemies, btnPlay, btnBack;
+  private GImage[] alien1 = new GImage[3];
+  private GImage[] alien2 = new GImage[3]; 
+  private GImage[] alien3 = new GImage[3]; 
+  private GImage[] alien4 = new GImage[3];
+  private GImage[] alien5 = new GImage[3];
+  private GImage[] alien6 = new GImage[3];
+  private GImage[] alien7 = new GImage[3];
+  
+  
+  private GLabel lblOrps, lblBlorp0,lblBlorp1, lblBlorp2, lblBlorp3, lblBlorp4, 
+    lblShlorp0, lblShlorp1, lblShlorp2, lblShlorp3, lblVorp0, lblVorp1, lblVorp2, 
+    lblVorp3, lblMeborp0, lblMeborp1, lblMeborp2, lblMeborp3, lblHorp0, lblHorp1, 
+    lblHorp2,lblHorp3, lblYorp0, lblYorp1, lblYorp2,  lblYorp3, lblRainborp0,
+    lblRainborp1, lblRainborp2, lblRainborp3;
+  private GImage exBlorp, exShlorp, exVorp, exMeborp, exHorp, exYorp, exRainborp,
+    exLordOrp;
+  private GImage map1Pic, map2Pic, map3Pic;
+  private GImage pauseWaveImg, playWaveImg;
+  private GImage tower1, tower2, tower3, tower4, tower5;
+  
+  private Color txtColor = new Color(198, 41, 146);
+  private Color pathColor = new Color(224,236,255, 180);
+
+  private Color menuColor = new Color(52, 63, 71);
+  private Color nameColor = new Color(109, 255, 221);
+  private Color endGameColor1 = new Color(26, 208, 120);
+  private GRect spaceLine[] = new GRect[18];
+  private int componentNumber = 0;
+  private int numberOfLives, totalLives, dollorpsEarned, totalMoney;
+  private int waveNumber;
+  private boolean firstTime = true;
+  int width, height;
+  private RandomGenerator rand = new RandomGenerator();
+  
+  
+  // Game Play settings
+  private GImage livesIcon, moneyIcon;
+  private GLabel lifeTotal, moneyTotal;
+  private ArrayList<AlienShip> enemyWaveList;
+  private int mapChoice;
+  private GRect entranceMap, exitMap;
+  public void init() {
+    this.setSize(550,500);
+    width = getWidth();
+    height = getHeight();
+    
+    componentNumber = 0;
+    setBackground(menuColor);
+    drawSpaceLines();
+    drawBasicAliens();
+    drawEnemyList();
+    
+    entranceMap = new GRect(0,0,1,1);
+    add(entranceMap, 0, 0);
+    btnPlay = new GImage("AlienDefense/Images/Play.png");
+    add(btnPlay, width/2 - btnPlay.getWidth()/2, 
+        height/2 - btnPlay.getHeight()/2 - 100);
+    
+    btnLogin = new GImage("Images/Login.png");
+    add(btnLogin, width/2 - btnLogin.getWidth()/2, 
+        height/2 - btnLogin.getHeight()/2 - 50);
+    
+    
+    btnEnemies = new GImage("Images/Enemies.png");
+    add(btnEnemies, width/2 - btnEnemies.getWidth()/2, 
+        height/2 - btnEnemies.getHeight()/2);
+    
+    btnQuit = new GImage("Images/Quit.png");
+    add(btnQuit, width/2 - btnQuit.getWidth()/2, 
+        height/2 - btnQuit.getHeight()/2 + 50);
+    
+    btnBack = new GImage("Images/Back.png");
+    
+    map1Pic = new GImage("Images/Map1Easy.png");
+    map2Pic = new GImage("Images/Map2Medium.png");
+    map3Pic = new GImage("Images/Map3Hard.png");
+    lw.createGUI(width/2 - 80, height/2 - 50, 200, 60, this);
+    lw.createWarningBox(width/2 - 80, height/2 - 50, 185, 60, this);
+    addMouseListeners();
+    addKeyListeners();
+  }
+  public void run() {
+    this.gameMusic.loop();
+    while (true) {
+      
+      for (int i = 0; i < 18; i++) {
+        spaceLine[i].move(-2,0);
+        if (spaceLine[i].getX() <= -160) {
+          // Reset their X location to the right side.
+          spaceLine[i].setLocation(rand.nextDouble(1100, 1800), 
+                                   rand.nextDouble(20, 485));
+        }
+      }
+      for (int i = 0; i < 3; i++) {
+        alien1[i].move(-.1,0);
+        alien2[i].move(-.15,0);
+        alien3[i].move(-.3,0);
+        alien4[i].move(-.2,0);
+        alien5[i].move(-.15,0);
+        alien6[i].move(-.2,0);
+        alien7[i].move(-.25,0);
+        if (alien1[i].getX() <= -160) {
+          // Reset their X location to the right side.
+          alien1[i].setLocation(rand.nextDouble(1100, 1800), 
+                                rand.nextDouble(20, 435));
+        }
+        if (alien2[i].getX() <= -160) {
+          // Reset their X location to the right side.
+          alien2[i].setLocation(rand.nextDouble(1100, 1800), 
+                                rand.nextDouble(20, 435));
+        }
+        if (alien3[i].getX() <= -160) {
+          // Reset their X location to the right side.
+          alien3[i].setLocation(rand.nextDouble(1100, 1800), 
+                                rand.nextDouble(20, 435));
+        }
+        if (alien4[i].getX() <= -160) {
+          // Reset their X location to the right side.
+          alien4[i].setLocation(rand.nextDouble(1100, 1800), 
+                                rand.nextDouble(20, 435));
+        }
+        if (alien5[i].getX() <= -160) {
+          // Reset their X location to the right side.
+          alien5[i].setLocation(rand.nextDouble(1100, 1800), 
+                                rand.nextDouble(20, 435));
+        }
+        if (alien6[i].getX() <= -160) {
+          // Reset their X location to the right side.
+          alien6[i].setLocation(rand.nextDouble(1100, 1800), 
+                                rand.nextDouble(20, 435));
+        }
+        if (alien7[i].getX() <= -160) {
+          // Reset their X location to the right side.
+          alien7[i].setLocation(rand.nextDouble(1100, 1800), 
+                                rand.nextDouble(20, 435));
+        }
+      } 
+      pause(DELAY); 
+    }
+  }
+  // Draw the 6 lines to resemble stars passing by.
+  public void drawSpaceLines() {
+    // Use thin rectangles to resemble stretched stars.
+    for (int i = 0 ; i < 18 ; i++) {
+      spaceLine[i] = new GRect(0,0);
+      spaceLine[i].setSize(150, 2);
+      spaceLine[i].setFilled(true);
+      spaceLine[i].setFillColor(Color.WHITE);
+      spaceLine[i].setColor(Color.WHITE);
+      add(spaceLine[i], rand.nextDouble(600, 1800), rand.nextDouble(20, 485));  
+    }
+  }
+  public void removeSpaceLines() {
+    for (int i = 0 ; i < 18 ; i++) {
+      remove(spaceLine[i]); 
+    }
+    
+  }
+  public void drawBasicAliens() {
+    for (int i = 0; i < 3; i++) {
+      alien1[i] = new GImage("Images/Blorp.gif");
+      alien1[i].setSize(50,50);
+      add(alien1[i], rand.nextDouble(600, 1800), rand.nextDouble(20, 435));
+    }
+    for (int i = 0; i < 3; i++) {
+      alien2[i] = new GImage("Images/Shlorp.gif");
+      alien2[i].setSize(50,50);
+      add(alien2[i], rand.nextDouble(600, 1800), rand.nextDouble(20, 435));
+    }
+    for (int i = 0; i < 3; i++) {
+      alien3[i] = new GImage("Images/Vorp.gif");
+      alien3[i].setSize(50,50);
+      add(alien3[i], rand.nextDouble(600, 1800), rand.nextDouble(20, 435));
+    }
+    for (int i = 0; i < 3; i++) {
+      alien4[i] = new GImage("Images/Meborp.gif");
+      alien4[i].setSize(50,50);
+      add(alien4[i], rand.nextDouble(600, 1800), rand.nextDouble(20, 435));
+    }
+    for (int i = 0; i < 3; i++) {
+      alien5[i] = new GImage("Images/Horp.gif");
+      alien5[i].setSize(50,50);
+      add(alien5[i], rand.nextDouble(600, 1800), rand.nextDouble(20, 435));
+    }
+    for (int i = 0; i < 3; i++) {
+      alien6[i] = new GImage("Images/Yorp.gif");
+      alien6[i].setSize(50,50);
+      add(alien6[i], rand.nextDouble(600, 1800), rand.nextDouble(20, 435));
+    }
+    for (int i = 0; i < 3; i++) {
+      alien7[i] = new GImage("Images/Rainborp.gif");
+      alien7[i].setSize(50,50);
+      add(alien7[i], rand.nextDouble(600, 1800), rand.nextDouble(20, 435));
+    }  
+  }
+  public void removeBasicAliens() {
+    for (int i = 0; i < 3; i++) {
+      remove(alien1[i]);
+      remove(alien2[i]);
+      remove(alien3[i]);
+      remove(alien4[i]);
+      remove(alien5[i]);
+      remove(alien6[i]);
+      remove(alien7[i]);
+    } 
+  }
+  public void drawEnemyList() { 
+    
+    lblOrps = new GLabel("ORPS");
+    lblOrps.setFont(new Font("Serif", Font.BOLD, 30));
+    lblOrps.setColor(Color.GREEN);
+    lblOrps.setVisible(false);
+    add(lblOrps, width/2 - lblOrps.getWidth()/2, 30);
+    
+    exBlorp = new GImage("Images/Blorp.gif");
+    exBlorp.setSize(50, 50);
+    
+    lblBlorp0 = new GLabel("Blorps");
+    lblBlorp0.setFont(new Font("Serif", Font.PLAIN, 14));
+    lblBlorp0.setColor(nameColor);
+    lblBlorp0.setVisible(false);
+    add(lblBlorp0, 70, 45);
+    
+    lblBlorp1 = new GLabel("- The most common type of Orp. " + "These Orps are slow in movement and");
+    lblBlorp2 = new GLabel("are not very aggressive. Usually oblivious to their surroundings, Blorps"); 
+    lblBlorp3 = new GLabel("casually float through space without a worry " + "about where they're going."); 
+    lblBlorp4 = new GLabel("Health: 1 | Speed: 1 | Dollorps: 1");
+    lblBlorp1.setFont(new Font("Serif", Font.PLAIN, 14));
+    lblBlorp1.setColor(txtColor);
+    lblBlorp1.setVisible(false);
+    add(lblBlorp1, 112, 45);
+    
+    lblBlorp2.setFont(new Font("Serif", Font.PLAIN, 14));
+    lblBlorp2.setColor(txtColor);
+    lblBlorp2.setVisible(false);
+    add(lblBlorp2, 70, 59);
+    
+    lblBlorp3.setFont(new Font("Serif", Font.PLAIN, 14));
+    lblBlorp3.setColor(txtColor);
+    lblBlorp3.setVisible(false);
+    add(lblBlorp3, 70, 73);
+    
+    lblBlorp4.setFont(new Font("Serif", Font.PLAIN, 14));
+    lblBlorp4.setColor(Color.GREEN);
+    lblBlorp4.setVisible(false);
+    add(lblBlorp4, 70, 87);
+    
+    exShlorp = new GImage("Images/Shlorp.gif");
+    exShlorp.setSize(50, 50);
+    
+    lblShlorp0 = new GLabel("Shlorps");
+    lblShlorp0.setFont(new Font("Serif", Font.PLAIN, 14));
+    lblShlorp0.setColor(nameColor);
+    lblShlorp0.setVisible(false);
+    add(lblShlorp0, 70, 105);
+    
+    lblShlorp1 = new GLabel("- These Orps don't need oxygen to breathe and float on their hoverboards");
+    lblShlorp2 = new GLabel("through space. Shlorps can be easily identified by their various tentacles."); 
+    lblShlorp3 = new GLabel("Health: 2 | Speed: 1.5 | Dollorps: 5"); 
+    lblShlorp1.setFont(new Font("Serif", Font.PLAIN, 14));
+    lblShlorp1.setColor(txtColor);
+    lblShlorp1.setVisible(false);
+    add(lblShlorp1, 120, 105);
+    
+    lblShlorp2.setFont(new Font("Serif", Font.PLAIN, 14));
+    lblShlorp2.setColor(txtColor);
+    lblShlorp2.setVisible(false);
+    add(lblShlorp2, 70, 119);
+    
+    lblShlorp3.setFont(new Font("Serif", Font.PLAIN, 14));
+    lblShlorp3.setColor(Color.GREEN);
+    lblShlorp3.setVisible(false);
+    add(lblShlorp3, 70, 133);
+    
+    exVorp = new GImage("Images/Vorp.gif");
+    exVorp.setSize(50, 50);
+    
+    lblVorp0 = new GLabel("Vorps");
+    lblVorp0.setFont(new Font("Serif", Font.PLAIN, 14));
+    lblVorp0.setColor(nameColor);
+    lblVorp0.setVisible(false);
+    add(lblVorp0, 70, 153);
+    
+    lblVorp1 = new GLabel("- The most intelligent Orps in the entire galaxy. These Orps move quickly");
+    lblVorp2 = new GLabel("to their objective and understand that speed is the key to domination."); 
+    lblVorp3 = new GLabel("Health: 2 | Speed: 3 | Dollorps: 7"); 
+    lblVorp1.setFont(new Font("Serif", Font.PLAIN, 14));
+    lblVorp1.setColor(txtColor);
+    lblVorp1.setVisible(false);
+    add(lblVorp1, 110, 153);
+    
+    lblVorp2.setFont(new Font("Serif", Font.PLAIN, 14));
+    lblVorp2.setColor(txtColor);
+    lblVorp2.setVisible(false);
+    add(lblVorp2, 70, 167);
+    
+    lblVorp3.setFont(new Font("Serif", Font.PLAIN, 14));
+    lblVorp3.setColor(Color.GREEN);
+    lblVorp3.setVisible(false);
+    add(lblVorp3, 70, 181);
+    
+    exMeborp = new GImage("Images/Meborp.gif");
+    exMeborp.setSize(50, 50);
+    
+    lblMeborp0 = new GLabel("Meborps");
+    lblMeborp0.setFont(new Font("Serif", Font.PLAIN, 14));
+    lblMeborp0.setColor(nameColor);
+    lblMeborp0.setVisible(false);
+    add(lblMeborp0, 70, 206);
+    
+    lblMeborp1 = new GLabel("- These crazy looking beings have no sense of compassion, nor anything");
+    lblMeborp2 = new GLabel("for that matter. Insane, aggressive, destructive. Destroy them quickly."); 
+    lblMeborp3 = new GLabel("Health: 5 | Speed: 2 | Dollorps: 10"); 
+    lblMeborp1.setFont(new Font("Serif", Font.PLAIN, 14));
+    lblMeborp1.setColor(txtColor);
+    lblMeborp1.setVisible(false);
+    add(lblMeborp1, 123, 206);
+    
+    lblMeborp2.setFont(new Font("Serif", Font.PLAIN, 14));
+    lblMeborp2.setColor(txtColor);
+    lblMeborp2.setVisible(false);
+    add(lblMeborp2, 70, 220);
+    
+    lblMeborp3.setFont(new Font("Serif", Font.PLAIN, 14));
+    lblMeborp3.setColor(Color.GREEN);
+    lblMeborp3.setVisible(false);
+    add(lblMeborp3, 70, 234);
+    
+    exHorp = new GImage("Images/Horp.gif");
+    exHorp.setSize(45, 45);
+    
+    lblHorp0 = new GLabel("Horps");
+    lblHorp0.setFont(new Font("Serif", Font.PLAIN, 14));
+    lblHorp0.setColor(nameColor);
+    lblHorp0.setVisible(false);
+    add(lblHorp0, 70, 254);
+    
+    lblHorp1 = new GLabel("- Horps are generous beings whose life goals are to provide for others.");
+    lblHorp2 = new GLabel("They have the power to give a life, which is collected by destroying them."); 
+    lblHorp3 = new GLabel("Health: 5  | Speed: 1.5 | Dollorps: 3"); 
+    lblHorp1.setFont(new Font("Serif", Font.PLAIN, 14));
+    lblHorp1.setColor(txtColor);
+    lblHorp1.setVisible(false);
+    add(lblHorp1, 110, 254);
+    
+    lblHorp2.setFont(new Font("Serif", Font.PLAIN, 14));
+    lblHorp2.setColor(txtColor);
+    lblHorp2.setVisible(false);
+    add(lblHorp2, 70, 268);
+    
+    lblHorp3.setFont(new Font("Serif", Font.PLAIN, 14));
+    lblHorp3.setColor(Color.GREEN);
+    lblHorp3.setVisible(false);
+    add(lblHorp3, 70, 282);
+    
+    exYorp = new GImage("Images/Yorp.gif");
+    exYorp.setSize(50, 50);
+    
+    lblYorp0 = new GLabel("Yorps");
+    lblYorp0.setFont(new Font("Serif", Font.PLAIN, 14));
+    lblYorp0.setColor(nameColor);
+    lblYorp0.setVisible(false);
+    add(lblYorp0, 70, 304);
+    
+    lblYorp1 = new GLabel("- These Orps rank just below Lord Orp and serve as disciples. They are");
+    lblYorp2 = new GLabel("only instructed to attack when other Orps cannot get the job done."); 
+    lblYorp3 = new GLabel("Health: 7 | Speed: 2 | Dollorps: 10"); 
+    lblYorp1.setFont(new Font("Serif", Font.PLAIN, 14));
+    lblYorp1.setColor(txtColor);
+    lblYorp1.setVisible(false);
+    add(lblYorp1, 110, 304);
+    
+    lblYorp2.setFont(new Font("Serif", Font.PLAIN, 14));
+    lblYorp2.setColor(txtColor);
+    lblYorp2.setVisible(false);
+    add(lblYorp2, 70, 318);
+    
+    lblYorp3.setFont(new Font("Serif", Font.PLAIN, 14));
+    lblYorp3.setColor(Color.GREEN);
+    lblYorp3.setVisible(false);
+    add(lblYorp3, 70, 332);
+    
+    exRainborp = new GImage("Images/Rainborp.gif");
+    exRainborp.setSize(50, 50);
+    
+    lblRainborp0 = new GLabel("Rainborps");
+    lblRainborp0.setFont(new Font("Serif", Font.PLAIN, 14));
+    lblRainborp0.setColor(nameColor);
+    lblRainborp0.setVisible(false);
+    add(lblRainborp0, 70, 354);
+    
+    lblRainborp1 = new GLabel("- Extremely rare Orps that scan the galaxy for powerful lifeforms.");
+    lblRainborp2 = new GLabel("Proving your strength will result in the possibility of a Rainborp."); 
+    lblRainborp3 = new GLabel("Health: 7 | Speed: 2.5 | Dollorps: 30"); 
+    lblRainborp1.setFont(new Font("Serif", Font.PLAIN, 14));
+    lblRainborp1.setColor(txtColor);
+    lblRainborp1.setVisible(false);
+    add(lblRainborp1, 130, 354);
+    
+    lblRainborp2.setFont(new Font("Serif", Font.PLAIN, 14));
+    lblRainborp2.setColor(txtColor);
+    lblRainborp2.setVisible(false);
+    add(lblRainborp2, 70, 368);
+    
+    lblRainborp3.setFont(new Font("Serif", Font.PLAIN, 14));
+    lblRainborp3.setColor(Color.GREEN);
+    lblRainborp3.setVisible(false);
+    add(lblRainborp3, 70, 382);
+    /*lblOrps = new GLabel("ORPS");
+     lblOrps.setFont(new Font("Serif", Font.BOLD, 30));
+     lblOrps.setColor(Color.WHITE);
+     lblOrps.setVisible(false);
+     add(lblOrps, width/2 - lblOrps.getWidth()/2, 30);
+     
+     lblOrps = new GLabel("ORPS");
+     lblOrps.setFont(new Font("Serif", Font.BOLD, 30));
+     lblOrps.setColor(Color.WHITE);
+     lblOrps.setVisible(false);
+     add(lblOrps, width/2 - lblOrps.getWidth()/2, 30);*/
+  }
+  public void mouseEntered(MouseEvent e) {
+    Toolkit tk = Toolkit.getDefaultToolkit();
+    Image cImg = tk.getImage("Images/TargetSight.png");
+    Point p = new Point(0,0);
+    Cursor c = tk.createCustomCursor(cImg, p, "Cursor");
+    this.setCursor(c);
+  }
+  /** handles the mouse event when mouse exits the window */
+  public void mouseExited(MouseEvent e) {
+    
+  }
+  /** handles the mouse event when mouse is pressed */
+  public void mousePressed(GPoint pt) {
+    boolean committed = false;
+    if (componentNumber == 0 && !committed) {
+      if (btnPlay.contains(pt)) {
+        if (playerName.equals("")) {
+          lw.makeVisibleNoName();
+          remove(btnPlay);
+          remove(btnLogin);
+          remove(btnEnemies);
+          remove(btnQuit);
+          committed = true;
+        }
+        else {
+          showScreen(2);
+          committed = true;
+        }
+      }
+      if (btnLogin.contains(pt)) { // check if the mouse is pressed inside the arc
+        lw.makeVisibleLogin();
+        remove(btnPlay);
+        remove(btnLogin);
+        remove(btnEnemies);
+        remove(btnQuit);
+        committed = true;
+      }
+      if (btnEnemies.contains(pt)) {
+        removeBasicAliens();
+        committed = true;
+        showScreen(1); 
+      }
+      if (btnQuit.contains(pt)) { // check if the mouse is pressed inside the arc
+        committed = true;
+        this.gameMusic.stop();
+        System.exit(0);
+      }
+    }
+    if (componentNumber == 1  && !committed) {
+      if (btnBack.contains(pt)) {
+        drawBasicAliens();
+        committed = true;
+        remove(btnBack);
+        lblOrps.setVisible(false); lblBlorp0.setVisible(false); 
+        lblBlorp1.setVisible(false); lblBlorp2.setVisible(false);
+        lblBlorp3.setVisible(false); lblBlorp4.setVisible(false);
+        lblShlorp0.setVisible(false); lblShlorp1.setVisible(false);
+        lblShlorp2.setVisible(false); lblShlorp3.setVisible(false);
+        lblVorp0.setVisible(false); lblVorp1.setVisible(false);
+        lblVorp2.setVisible(false); lblVorp3.setVisible(false);
+        lblMeborp0.setVisible(false); lblMeborp1.setVisible(false);
+        lblMeborp2.setVisible(false); lblMeborp3.setVisible(false);
+        lblHorp0.setVisible(false); lblHorp1.setVisible(false);
+        lblHorp2.setVisible(false); lblHorp3.setVisible(false);
+        lblYorp0.setVisible(false); lblYorp1.setVisible(false);
+        lblYorp2.setVisible(false); lblYorp3.setVisible(false);
+        lblRainborp0.setVisible(false); lblRainborp1.setVisible(false);
+        lblRainborp2.setVisible(false); lblRainborp3.setVisible(false);
+        remove(exBlorp); remove(exShlorp); remove(exVorp); remove(exMeborp); 
+        remove(exHorp); remove(exYorp); remove(exRainborp);
+        //remove(exLordOrp);
+        showScreen(0);
+      }
+    }
+    if (componentNumber == 2 && !committed) {
+      // MAP SELECTS
+      if (map3Pic.contains(pt))  { 
+        committed = true;
+        mapChoice = 3;
+        showScreen(3);
+        
+      }
+      if (btnBack.contains(pt)) {
+        committed = true;
+        drawBasicAliens();
+        remove(map1Pic); remove(map2Pic); remove(map3Pic);
+        remove(btnBack);
+        showScreen(0);
+      }
+    }
+    if (componentNumber == 3 && !committed) {
+      if (playWaveImg.contains(pt)) {
+        //System.out.println("in 3");
+        beginGame();
+        
+      }
+    }
+  }
+  
+  public void showScreen(int compNumber) {
+    componentNumber = compNumber;
+    if (componentNumber == 0) {
+      
+      add(btnPlay, width/2 - btnPlay.getWidth()/2, 
+          height/2 - btnPlay.getHeight()/2 - 100);
+      
+      add(btnLogin, width/2 - btnLogin.getWidth()/2, 
+          height/2 - btnLogin.getHeight()/2 - 50);
+      
+      add(btnEnemies, width/2 - btnEnemies.getWidth()/2, 
+          height/2 - btnEnemies.getHeight()/2);
+      
+      add(btnQuit, width/2 - btnQuit.getWidth()/2, 
+          height/2 - btnQuit.getHeight()/2 + 50);
+      
+    }
+    else if (componentNumber == 1) {
+      showEnemyList();
+      remove(btnPlay);
+      remove(btnLogin);
+      remove(btnEnemies);
+      remove(btnQuit);
+    }
+    else if (componentNumber == 2) {
+      showMapChoices();
+      removeBasicAliens();
+      remove(btnPlay);
+      remove(btnLogin);
+      remove(btnEnemies);
+      remove(btnQuit);
+    }
+    else if (componentNumber == 3) {
+      remove(btnBack);
+      drawMap(mapChoice);
+      drawTowers();
+    }
+  }
+  
+  // Setup Mechanics
+  public void setPlayerName(String name) {
+    playerName = name; 
+  }
+  
+  public void showEnemyList() {
+    add(btnBack, width/2 - btnBack.getWidth()/2, 460);
+    lblOrps.setVisible(true);
+    lblBlorp0.setVisible(true);
+    lblBlorp1.setVisible(true); lblBlorp2.setVisible(true);
+    lblBlorp3.setVisible(true); lblBlorp4.setVisible(true);
+    add(exBlorp, 10, 35);
+    
+    add(exShlorp, 12, 90);
+    lblShlorp0.setVisible(true); lblShlorp1.setVisible(true);
+    lblShlorp2.setVisible(true); lblShlorp3.setVisible(true);
+    
+    add(exVorp, 10, 142);
+    lblVorp0.setVisible(true); lblVorp1.setVisible(true);
+    lblVorp2.setVisible(true); lblVorp3.setVisible(true);
+    
+    add(exMeborp, 10, 194);
+    lblMeborp0.setVisible(true); lblMeborp1.setVisible(true);
+    lblMeborp2.setVisible(true); lblMeborp3.setVisible(true);
+    
+    add(exHorp, 13, 246);
+    lblHorp0.setVisible(true); lblHorp1.setVisible(true);
+    lblHorp2.setVisible(true); lblHorp3.setVisible(true);
+    
+    add(exYorp, 10, 294);
+    lblYorp0.setVisible(true); lblYorp1.setVisible(true);
+    lblYorp2.setVisible(true); lblYorp3.setVisible(true);
+    
+    add(exRainborp, 10, 344);
+    lblRainborp0.setVisible(true); lblRainborp1.setVisible(true);
+    lblRainborp2.setVisible(true); lblRainborp3.setVisible(true);
+  }
+  
+  public void showMapChoices() {
+    add(map1Pic, 10, 10);
+    add(map2Pic, 140, 10);
+    add(map3Pic, 270, 10);
+    add(btnBack, width/2 - btnBack.getWidth()/2, 460);
+  }
+  
+  public void drawMap(int mapNumber) {
+    this.gameMusic.stop();
+    totalLives = 200;
+    numberOfLives = totalLives;
+    dollorpsEarned = 0;
+    removeSpaceLines();
+    remove(map1Pic);
+    remove(map2Pic);
+    remove(map3Pic);
+    pauseWaveImg = new GImage("Images/Pause.png");
+    add(pauseWaveImg, 500, 450);
+    playWaveImg = new GImage("Images/PlayWave.png");
+    add(playWaveImg, 500, 400);
+    livesIcon = new GImage("Images/LifeHeart.png");
+    livesIcon.setSize(10,10);
+    add(livesIcon, 505, 30);
+    lifeTotal = new GLabel(""+numberOfLives);
+    lifeTotal.setFont(new Font("Serif", Font.PLAIN, 14));
+    lifeTotal.setColor(Color.WHITE);
+    add(lifeTotal, 518, 40);
+    moneyIcon = new GImage("Images/Dollar_Sign.png");
+    moneyIcon.setSize(10,10);
+    add(moneyIcon, 505, 10);
+    totalMoney = 300;
+    moneyTotal = new GLabel(""+ totalMoney);
+    moneyTotal.setFont(new Font("Serif", Font.PLAIN, 14));
+    moneyTotal.setColor(Color.WHITE);
+    add(moneyTotal, 518, 20);
+    if (mapNumber == 1) {
+      
+    }
+    else if (mapNumber == 2) {
+      
+    }
+    else if (mapNumber == 3) {
+      GRect path1 = new GRect(0,0, 50, 500);
+      path1.setFillColor(pathColor);
+      path1.setColor(pathColor);
+      path1.setFilled(true);
+      add(path1);
+      GRect path2 = new GRect(50,450, 400, 50);
+      path2.setFillColor(pathColor);
+      path2.setColor(pathColor);
+      path2.setFilled(true);
+      add(path2);
+      GRect path3 = new GRect(450,0, 50, 500);
+      path3.setFillColor(pathColor);
+      path3.setColor(pathColor);
+      path3.setFilled(true);
+      add(path3); 
+    }
+  }
+  public void drawTowers() {
+    tower1 = new GImage("Images/Tower1.png");
+    tower2 = new GImage("Images/Tower2.png");
+    add(tower2, 501, 100);
+    add(tower1, 501, 50);
+    if (playerLevel >= 3) {
+    tower3 = new GImage("Images/Towe3.png");
+    add(tower3,501,150);
+    }
+    if (playerLevel >= 6) {
+      
+    }
+    if (playerLevel >= 10) {
+      
+    }
+  }
+  
+  public void beginGame() {
+    if (firstTime) { 
+    enemyWaveList = new ArrayList<AlienShip>();
+    waveNumber = 1;
+    if (mapChoice == 3) {
+      entranceMap.setLocation(1, 1); 
+    }
+    System.out.println("Wave Number: " + waveNumber);
+    createWave(waveNumber);
+    waveNumber++;
+    firstTime = false;
+    }
+    else {
+      if (checkWaveDone()){
+    if (waveNumber <= 50) {
+    enemyWaveList.clear();
+    System.out.println("Wave Number: " + waveNumber);
+    createWave(waveNumber);
+    waveNumber++;
+    }
+    firstTime = false;
+      }
+    }
+  }
+  public void createWave(int waveNumber) {
+    
+    if (waveNumber == 1) {
+      for (int i = 0; i < 3; i++) {
+        AlienShip ship = new AlienShip(40, 1, this);
+        enemyWaveList.add(ship);   
+      }
+    }
+    if (waveNumber == 2) {
+      for (int i = 0; i < 10; i++) {
+        AlienShip ship = new AlienShip(40, 1, this);
+        enemyWaveList.add(ship);   
+      }
+    }
+    if (waveNumber == 3) {
+      for (int i = 0; i < 5; i++) {
+        AlienShip ship = new AlienShip(40, 1, this);
+        enemyWaveList.add(ship);   
+      }
+      for (int i = 0; i < 3; i++) {
+        AlienShip ship = new AlienShip(40, 2, this);
+        enemyWaveList.add(ship);   
+      }
+    }
+    if (waveNumber == 4) {
+      for (int i = 0; i < 5; i++) {
+        AlienShip ship1 = new AlienShip(40, 1, this);
+        enemyWaveList.add(ship1);  
+        AlienShip ship2 = new AlienShip(40, 2, this);
+        enemyWaveList.add(ship2);  
+      }
+    }
+    if (waveNumber == 5) {
+      for (int i = 0; i < 5; i++) {
+        AlienShip ship = new AlienShip(40, 1, this);
+        enemyWaveList.add(ship);   
+      }
+      for (int i = 0; i < 3; i++) {
+        AlienShip ship = new AlienShip(40, 2, this);
+        enemyWaveList.add(ship);   
+      }
+      for (int i = 0; i < 2; i++) {
+        AlienShip ship = new AlienShip(40, 3, this);
+        enemyWaveList.add(ship);   
+      }
+    }
+    if (waveNumber == 6) {
+      for (int i = 0; i < 10; i++) {
+        AlienShip ship = new AlienShip(40, 1, this);
+        enemyWaveList.add(ship);   
+      }
+      for (int i = 0; i < 10; i++) {
+        AlienShip ship = new AlienShip(40, 2, this);
+        enemyWaveList.add(ship);   
+      }
+      for (int i = 0; i < 1; i++) {
+        AlienShip ship = new AlienShip(40, 3, this);
+        enemyWaveList.add(ship);   
+      }
+    }
+    beginWave();
+  }
+  public void beginWave() {
+    
+    for (int i = 0; i < enemyWaveList.size(); i++) {
+      if (mapChoice == 3) {
+        add(enemyWaveList.get(i), entranceMap.getX() + 5, entranceMap.getY() - 45 - (i*40));
+        new Thread(enemyWaveList.get(i)).start();
+        enemyWaveList.get(i).moveDown();
+      }
+    }
+  }
+  
+  public boolean checkWaveDone() {
+    boolean over = true;
+    if (enemyWaveList == null) { return over; }
+    for (int i = 0; i < enemyWaveList.size(); i++) {
+      if (enemyWaveList.get(i).getFlying()) { over = false;}
+    }
+    return over;
+  }
+  
+  public void boundaryChecks(AlienShip ship) {
+    
+    // Map 1
+    if (mapChoice == 1) {
+      
+    }
+    // Map 2
+    else if (mapChoice == 2) {
+      
+    }
+    // Map 3
+    else if (mapChoice == 3) {
+      if (ship.getFlying()) {
+      if (ship.pathNumber == 1) {
+        if (ship.getY() + ship.size < 0) {
+          
+          numberOfLives = numberOfLives - ship.getHealth();
+          lifeTotal.setLabel(""+numberOfLives);
+          ship.removeShip();
+          checkDead();
+        }
+      }
+      else if (ship.pathNumber == 2) {
+        if (ship.getX() > 455) {
+          ship.moveUp(); 
+        }
+      }
+      else if (ship.pathNumber == 3) {
+        if (ship.getY() > 455) {
+          //ship.getHit(2);
+          
+          ship.moveRight(); 
+        }
+      }
+      }
+    }
+  }
+  
+  
+  public void towerShoot(Tower shootingTower, int towerType) {
+	  if (towerType == 1) {
+		  Bullet ammoBullet = new Bullet(10, 2, -10, 0, this);
+		  add(ammoBullet, shootingTower.getX(), shootingTower.getY()+50);
+		  new Thread(ammoBullet).start();
+	  }
+	  
+  }
+  public void giveLife() {
+   numberOfLives = numberOfLives + 1; 
+   lifeTotal.setLabel(""+numberOfLives);
+  }
+  
+  public void checkDead() {
+    //numberOfLives = 0;
+    if (numberOfLives <= 0) {
+      boolean playerIsAlive = false;
+      GRect base = new GRect(150, 100, 200, 80);
+      base.setColor(Color.RED);
+      base.setFillColor(menuColor);
+      base.setFilled(true);
+      add(base);
+      
+      GLabel gameOverLBL = new GLabel("Game Over!");
+      gameOverLBL.setFont(new Font("Serif", Font.PLAIN, 24));
+      gameOverLBL.setColor(endGameColor1);
+      add(gameOverLBL, 250 - gameOverLBL.getWidth()/2, 130);
+      
+      dollorpsEarned = 125;
+      GLabel finalScore = new GLabel("Final Score: " + dollorpsEarned);
+      finalScore.setFont(new Font("Serif", Font.PLAIN, 14));
+      finalScore.setColor(endGameColor1);
+      add(finalScore, 160, 150);
+      
+      GLabel finalWave = new GLabel("Final Wave: " + waveNumber);
+      finalWave.setFont(new Font("Serif", Font.PLAIN, 14));
+      finalWave.setColor(endGameColor1);
+      add(finalWave, 160, 170);
+    }
+  }
+}

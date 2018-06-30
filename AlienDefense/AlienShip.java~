@@ -1,0 +1,104 @@
+import acm.graphics.*;
+import acm.program.*;
+import acm.util.*;
+import java.awt.*;
+import java.awt.event.*;
+/**
+ * Auto Generated Java Class.
+ */
+public class AlienShip extends GCompound implements Runnable {
+  // constants
+  private static final double DELAY = 1;
+  // instance variables
+  private AlienDefenseMain game; // the main game
+  private GImage alienShip;
+  private double size, speed, xSpeed, ySpeed, xMove, yMove;
+  private int health;
+
+// The constructor
+  public AlienShip(double size, int alienType, AlienDefenseMain game) {
+    // save the parameters in instance variables
+    this.game = game;
+    this.size = size;
+    
+    // Draw the alien Ship by finding an image file
+    
+    if (alienType == 1) {
+    alienShip = new GImage("Images/Blorp.gif");
+    alienShip.setSize(size,size);
+    speed = .1;
+    health = 1;
+    }
+    if (alienType == 2) {
+    alienShip = new GImage("Images/Shlorp.gif");
+    alienShip.setSize(size,size);
+    speed = .2;
+    health = 2;
+    }
+    if (alienType == 3) {
+    alienShip = new GImage("Images/Vorp.gif");
+    alienShip.setSize(size,size);
+    speed = .4;
+    health = 2;
+    }
+    if (alienType == 4) {
+    alienShip = new GImage("Images/Meborp.gif");
+    alienShip.setSize(size,size);
+    speed = .25;
+    health = 5;
+    }
+    if (alienType == 5) {
+    alienShip = new GImage("Images/Horp.gif");
+    alienShip.setSize(size,size);
+    speed = .2;
+    health = 5;
+    }
+    if (alienType == 6) {
+    alienShip = new GImage("Images/Yorp.gif");
+    alienShip.setSize(size,size);
+    speed = .25;
+    health = 3;
+    }
+    if (alienType == 7) {
+    alienShip = new GImage("Images/Rainborp.gif");
+    alienShip.setSize(size,size);
+    speed = .3;
+    health = 7;
+    }
+    xMove = 0;
+    yMove = 0;
+    add(alienShip);
+  }
+  
+  // Run the method to animate the Ship.
+  public void run() {
+    while (true) {
+      oneTimeStep();
+      pause(DELAY);      
+    }   
+  }
+  
+  // in each time step, move the ship
+  private void oneTimeStep() {
+    double x = getX();
+    double y = getY();
+    
+    move(xMove, yMove); 
+  }
+  public void moveRight() {
+    xMove = speed;
+    yMove = 0;
+  }
+  public void moveLeft() {
+    xMove = -speed;
+    yMove = 0;
+  }
+  public void moveUp() {
+    xMove = 0;
+    yMove = -speed;
+  }
+  public void moveDown() {
+    xMove = 0;
+    yMove = speed;
+  }
+}
